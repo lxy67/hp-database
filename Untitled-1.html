@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>马歇尔芨诺研究院 - HP菌数据库</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 基础样式 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 200px; /* 为页脚留出空间 */
+        }
+
+        /* 语言切换器 */
+        .lang-switcher {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 5px;
+        }
+
+        .lang-switcher button {
+            background: none;
+            border: none;
+            color: var(--light-color);
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .lang-switcher button:hover {
+            background-color: rgba(0,0,0,0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 页眉 */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-container img {
+            height: 50px;
+            margin-right: 15px;
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav li {
+            margin: 0 1rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--secondary-color);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--secondary-color);
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* 用户操作区域 */
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 2rem;
+        }
+
+        .user-actions .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background-color: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .user-actions .btn:hover {
+            background-color: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* 背景滚动 */
+        .bg-slider {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            animation: slideAnimation 12s infinite;
+        }
+        .slide:nth-child(1) {
+            background:
+                    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                    url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            animation-delay: 0s;
+        }
+
+        .slide:nth-child(2) {
+            background:
+                    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                    url('https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            animation-delay: 3s;
+        }
+
+        .slide:nth-child(3) {
+            background:
+                    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                    url('https://images.unsplash.com/photo-1581595219319-4e9a75a3e41c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            animation-delay: 6s;
+        }
+
+
+        @keyframes slideAnimation {
+            0% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            10% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            40% {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+        }
+
+        /* 主要内容 */
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.8rem;
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.9rem;
+            border-radius: 20px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            animation: modalFade 0.4s;
+        }
+
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #777;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        .modal-header {
+            margin-bottom: 1.8rem;
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .code-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .code-input input {
+            flex: 1;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .form-footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 首页特定样式 */
+        .hero {
+            text-align: center;
+            padding: 5rem 0 3rem;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.2rem;
+            color: white;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            max-width: 780px;
+            margin-left: auto;
+            margin-right: auto;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.8rem;
+            margin-top: 3rem;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 1.8rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+            height: 100%; /* 确保高度一致 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1.2rem;
+        }
+
+        .feature h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.2rem;
+            font-size: 1.4rem;
+        }
+
+        .feature p {
+            color: #555;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .feature .btn {
+            font-size: 0.9rem;
+            padding: 0.7rem 1.5rem;
+        }
+
+        /* 搜索页面样式 */
+        .search-section {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-section h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        #search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.8rem;
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.7rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f9f9f9;
+        }
+
+        /* 结果页面样式 */
+        .results-summary {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            margin-top: 1.2rem;
+        }
+
+        .tag {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 3rem;
+        }
+
+        .strain-card {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            padding: 1.8rem;
+            transition: all 0.4s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .strain-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .strain-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #eee;
+            font-size: 1.2rem;
+        }
+
+        .strain-details p {
+            margin-bottom: 0.7rem;
+            display: flex;
+        }
+
+        .strain-details strong {
+            width: 120px;
+            display: inline-block;
+            color: #555;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        .visualization {
+            margin-top: 3rem;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-placeholder,
+        .map-placeholder,
+        .report-placeholder {
+            height: 300px;
+            background-color: #f8f9fa;
+            border: 1px dashed #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.2rem 0;
+            color: #777;
+        }
+
+        .literature-list {
+            list-style: none;
+        }
+
+        .literature-list li {
+            margin-bottom: 0.9rem;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+
+        .literature-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+        }
+
+        .literature-list a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .literature-list a:hover {
+            text-decoration: underline;
+        }
+
+        /* 定制分析页面样式 */
+        .upload-area {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .upload-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: 2rem 0;
+        }
+
+        #sequence-file {
+            display: none;
+        }
+
+        #file-name {
+            color: #777;
+            font-style: italic;
+        }
+
+        #analyze-btn {
+            margin-top: 1.5rem;
+        }
+
+        .analysis-results {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.8rem;
+            margin: 2rem 0;
+        }
+
+        .result-card {
+            background-color: #f8f9fa;
+            padding: 1.8rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .result-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.2rem;
+            font-size: 1.2rem;
+        }
+
+        .result-card ul {
+            padding-left: 1.5rem;
+        }
+
+        .result-card li {
+            margin-bottom: 0.7rem;
+        }
+
+        .full-report {
+            margin-top: 2rem;
+        }
+
+        /* 联系页面样式 */
+        .contact-section {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .contact-info {
+            padding: 1.5rem 0;
+        }
+
+        .contact-info p {
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .contact-info i {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin-right: 12px;
+            min-width: 24px;
+        }
+
+        /* 页脚 */
+        footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.0001rem 2rem 0rem;
+            z-index: 50;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 0.0001rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .about-us h3,
+        .contact-info h3,
+        .links h3 {
+            margin-bottom: 1.5rem;
+            color: var(--secondary-color);
+            font-size: 1.3rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .about-us p {
+            color: rgba(255,255,255,0.85);
+            line-height: 1.7;
+        }
+
+        .links ul {
+            list-style: none;
+        }
+
+        .links li {
+            margin-bottom: 0.8rem;
+        }
+        .links-container {
+             display: flex;
+            gap: 20px; /* 控制列间距 */
+        }
+
+        .links-column {
+            flex: 1;
+            min-width: 0;
+        }
+        .links a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .links a:hover {
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .links a i {
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            nav ul {
+                margin-top: 1.5rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            nav li {
+                margin: 0.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .user-actions {
+                margin: 1rem auto 0;
+                justify-content: center;
+            }
+
+            .hero {
+                padding: 3rem 0 2rem;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .search-section, .contact-section, .visualization {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 语言切换 -->
+<div class="lang-switcher">
+    <button data-lang="zh-CN">简体中文</button>
+    <button data-lang="zh-TW">繁體中文</button>
+    <button data-lang="en">English</button>
+</div>
+
+<!-- 导航栏 -->
+<header>
+    <div class="logo-container">
+        <div class="logo-text">MGR Institute</div>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="#home" data-key="home">首页</a></li>
+            <li><a href="#search" data-key="search">智能搜索</a></li>
+            <li><a href="#analysis" data-key="analysis">定制分析</a></li>
+            <li><a href="#contact" data-key="contact">联系我们</a></li>
+        </ul>
+    </nav>
+
+    <!-- 用户操作区域 -->
+    <div class="user-actions">
+        <div id="user-info" style="display: none;">
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <span id="username-display">用户</span>
+                <button id="logout-btn" class="btn btn-small">退出</button>
+            </div>
+        </div>
+        <div id="login-buttons">
+            <button id="login-btn" class="btn btn-small">登录</button>
+            <button id="register-btn" class="btn btn-small">注册</button>
+        </div>
+    </div>
+</header>
+
+<!-- 滚动背景 -->
+<div class="bg-slider">
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+</div>
+
+<!-- 主要内容 -->
+<main id="content">
+    <!-- 首页内容将通过JS动态加载 -->
+</main>
+
+<!-- 页脚 -->
+<footer>
+    <div class="footer-content">
+        <div class="about-us">
+            <h3 data-key="about_us">关于我们</h3>
+            <p>The Marshall Genoimage Research Institute was established in Hong Kong by Jiying Technology Co.,&nbsp;Limited (an international medical AI innovation company incubated by Hong Kong Science Park) in collaboration with Professor Barry J.&nbsp;Marshall, winner of the 2005 Nobel Prize in Physiology or Medicine, and his team. The institute focuses on artificial intelligence and medicine, pioneering a healthier future.</p>
+        </div>
+
+        <div class="contact-info">
+            <h3 data-key="contact_us">联系我们</h3>
+            <p><i class="fas fa-envelope"></i> genoimage@genoimage.com</p>
+            <p><i class="fas fa-map-marker-alt"></i> Rm. 27, Space 109B-113, ITC, 1/F, 5W, Science & Technlogy Ave., Shatin, N.T., HKSAR</p>
+        </div>
+
+        <div class="links">
+            <h3 data-key="links">友情链接</h3>
+            <div class="links-container">
+                <ul class="links-column">
+                    <li><a href="https://www.genoimage.com/" target="_blank"><i class="fas fa-external-link-alt"></i> 芨影科技</a></li>
+                    <li><a href="https://www.uwa.edu.au/" target="_blank"><i class="fas fa-external-link-alt"></i> 西澳大学</a></li>
+                    <li><a href="https://www.polyu.edu.hk/" target="_blank"><i class="fas fa-external-link-alt"></i> 香港理工大学</a></li>
+                </ul>
+                <ul class="links-column">
+                    <li><a href="https://www.ncbi.nlm.nih.gov/" target="_blank"><i class="fas fa-external-link-alt"></i> NCBI数据库</a></li>
+                    <li><a href="https://www.ncmi.cn/" target="_blank"><i class="fas fa-external-link-alt"></i> 国家人口健康科学数据中心</a></li>
+                    <li><a href="https://www.phsciencedata.cn/Share/index.jsp" target="_blank"><i class="fas fa-external-link-alt"></i> 公共卫生科学数据中心</a></li>
+                </ul>
+                <ul class="links-column">
+                    <li><a href="https://www.fda.gov/" target="_blank"><i class="fas fa-external-link-alt"></i> 美国FDA</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="copyright">
+        <p>Copyright 2024 马歇尔芨诺研究院</p>
+    </div>
+</footer>
+
+
+
+<!-- 登录模态框 -->
+<div id="login-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="modal-header">
+            <h2>登录 HP 数据库平台</h2>
+        </div>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-email">邮箱</label>
+                <input type="email" id="login-email" required placeholder="请输入您的邮箱">
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" required placeholder="请输入密码">
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">登录</button>
+            <div class="form-footer">
+                <p>还没有账号？ <a href="#" id="show-register">立即注册</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 注册模态框 -->
+<div id="register-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="modal-header">
+            <h2>注册 HP 数据库账户</h2>
+        </div>
+        <form id="register-form">
+            <div class="form-group">
+                <label for="register-name">姓名</label>
+                <input type="text" id="register-name" required placeholder="请输入您的姓名">
+            </div>
+            <div class="form-group">
+                <label for="register-organization">单位信息</label>
+                <input type="text" id="register-organization" required placeholder="请输入您的单位">
+            </div>
+            <div class="form-group">
+                <label for="register-research">研究方向</label>
+                <input type="text" id="register-research" required placeholder="请输入您的研究方向">
+            </div>
+            <div class="form-group">
+                <label for="register-email">邮箱</label>
+                <input type="email" id="register-email" required placeholder="请输入您的邮箱">
+            </div>
+            <div class="form-group">
+                <label for="register-password">密码</label>
+                <input type="password" id="register-password" required placeholder="设置密码（至少6位）">
+            </div>
+            <div class="form-group">
+                <label for="verification-code">验证码</label>
+                <div class="code-input">
+                    <input type="text" id="verification-code" required placeholder="请输入验证码">
+                    <button type="button" id="send-code-btn" class="btn">发送验证码</button>
+                </div>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">注册</button>
+            <div class="form-footer">
+                <p>已有账号？ <a href="#" id="show-login">立即登录</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 多语言支持
+    const translations = {
+        'zh-CN': {
+            'home': "首页",
+            'search': "智能搜索",
+            'analysis': "定制分析",
+            'contact': "联系我们",
+            'about_us': "关于我们",
+            'contact_us': "联系我们",
+            'email': "邮箱",
+            'address': "地址",
+            'links': "友情链接",
+            'welcome': "欢迎访问HP菌数据库平台",
+            'subtitle': "2005年诺贝尔生理与医学奖巴里.马歇尔教授主导，马歇尔芨诺研究院，芨影科技联合开发，马歇尔传染病研究与培训中心、香港理工大学马歇尔微生物医学研究中心等多家机构支持的，全球领先的幽门螺杆菌研究数据库与智能分析平台",
+            'start_search': "开始搜索",
+            'custom_analysis': "定制分析",
+            'feature1_title': "复杂条件查询",
+            'feature1_desc': "地理筛选、疾病筛选、耐药标签等多维度筛选",
+            'feature2_title': "基因-蛋白质-结构探索",
+            'feature2_desc': "深入探索基因注释、蛋白质功能与3D结构",
+            'feature3_title': "耐药性趋势分析",
+            'feature3_desc': "可视化耐药性流行趋势与地理分布",
+            'feature4_title': "NCBI前沿研究",
+            'feature4_desc': "访问全球最大生物医学文献数据库",
+            'smart_search': "智能搜索",
+            'country': "国家",
+            'city': "城市",
+            'disease': "疾病类型",
+            'drug_resistance': "耐药性",
+            'virulence': "毒力因子",
+            'select_country': "选择国家",
+            'china': "中国",
+            'usa': "美国",
+            'japan': "日本",
+            'select_city': "选择城市",
+            'select_disease': "选择疾病",
+            'gastric_cancer': "胃癌",
+            'ulcer': "胃溃疡",
+            'gastritis': "胃炎",
+            'select_resistance': "选择耐药性",
+            'clarithromycin': "克拉霉素耐药",
+            'metronidazole': "甲硝唑耐药",
+            'amoxicillin': "阿莫西林耐药",
+            'select_virulence': "选择毒力因子",
+            'cagA': "cagA",
+            'vacA': "vacA",
+            'babA': "babA",
+            'search': "搜索",
+            'search_results': "搜索结果",
+            'results_count': "找到 {count} 个匹配菌株",
+            'strain_id': "菌株 ID",
+            'origin': "来源",
+            'disease': "疾病",
+            'resistance': "耐药性",
+            'virulence_factors': "毒力因子",
+            'view_mutations': "查看突变谱",
+            'view_structure': "查看3D结构",
+            'download': "下载序列",
+            'virulence_distribution': "毒力因子分布",
+            'chart_placeholder': "[毒力因子分布图将显示在这里]",
+            'related_literature': "相关文献",
+            'pubmed_link': "PMID: {id} - {title}",
+            'custom_analysis': "定制分析",
+            'upload_sequence': "上传序列",
+            'choose_file': "选择文件",
+            'no_file': "未选择文件",
+            'analyze': "分析",
+            'analysis_results': "分析结果",
+            'virulence_typing': "毒力分型",
+            'virulence_type': "vacA s1/m1, cagA阳性, babA2",
+            'drug_resistance_prediction': "耐药性预测",
+            'resistance_clarithromycin': "克拉霉素",
+            'resistance_amoxicillin': "阿莫西林",
+            'resistance_metronidazole': "甲硝唑",
+            'mutation_profile': "突变谱",
+            'mutation_23s': "23S rRNA",
+            'mutation_gyrA': "gyrA",
+            'mutation_pbp1': "pbp1",
+            'database_comparison': "数据库比对结果",
+            'report_placeholder': "[详细的比对报告将显示在这里]",
+            'download_report': "下载完整报告",
+            'map_placeholder': "[地图将显示在这里]",
+            'access_ncbi': "访问NCBI数据库"
+        },
+        'zh-TW': {
+            'home': "首頁",
+            'search': "智能搜索",
+            'analysis': "定制分析",
+            'contact': "聯繫我們",
+            'about_us': "關於我們",
+            'contact_us': "聯繫我們",
+            'email': "郵箱",
+            'address': "地址",
+            'links': "友情鏈接",
+            'welcome': "歡迎訪問HP菌數據庫平台",
+            'subtitle': "2005年諾貝爾生理與醫學獎巴里·馬歇爾教授主導，馬歇爾芨諾研究院，芨影科技聯合開發，馬歇爾傳染病研究與培訓中心、香港理工大學馬歇爾微生物醫學研究中心等多家機構支持的，全球領先的幽門螺桿菌研究數據庫與智能分析平台",
+            'start_search': "開始搜索",
+            'custom_analysis': "定制分析",
+            'feature1_title': "複雜條件查詢",
+            'feature1_desc': "地理篩選、疾病篩選、耐藥標籤等多維度篩選",
+            'feature2_title': "基因-蛋白質-結構探索",
+            'feature2_desc': "深入探索基因註釋、蛋白質功能與3D結構",
+            'feature3_title': "耐藥性趨勢分析",
+            'feature3_desc': "可視化耐藥性流行趨勢與地理分佈",
+            'feature4_title': "NCBI前沿研究",
+            'feature4_desc': "訪問全球最大生物醫學文獻數據庫",
+            'smart_search': "智能搜索",
+            'country': "國家",
+            'city': "城市",
+            'disease': "疾病類型",
+            'drug_resistance': "耐藥性",
+            'virulence': "毒力因子",
+            'select_country': "選擇國家",
+            'china': "中國",
+            'usa': "美國",
+            'japan': "日本",
+            'select_city': "選擇城市",
+            'select_disease': "選擇疾病",
+            'gastric_cancer': "胃癌",
+            'ulcer': "胃潰瘍",
+            'gastritis': "胃炎",
+            'select_resistance': "選擇耐藥性",
+            'clarithromycin': "克拉霉素耐藥",
+            'metronidazole': "甲硝唑耐藥",
+            'amoxicillin': "阿莫西林耐藥",
+            'select_virulence': "選擇毒力因子",
+            'cagA': "cagA",
+            'vacA': "vacA",
+            'babA': "babA",
+            'search': "搜索",
+            'search_results': "搜索結果",
+            'results_count': "找到 {count} 個匹配菌株",
+            'strain_id': "菌株 ID",
+            'origin': "來源",
+            'disease': "疾病",
+            'resistance': "耐藥性",
+            'virulence_factors': "毒力因子",
+            'view_mutations': "查看突變譜",
+            'view_structure': "查看3D結構",
+            'download': "下載序列",
+            'virulence_distribution': "毒力因子分佈",
+            'chart_placeholder': "[毒力因子分佈圖將顯示在這裡]",
+            'related_literature': "相關文獻",
+            'pubmed_link': "PMID: {id} - {title}",
+            'custom_analysis': "定制分析",
+            'upload_sequence': "上傳序列",
+            'choose_file': "選擇文件",
+            'no_file': "未選擇文件",
+            'analyze': "分析",
+            'analysis_results': "分析結果",
+            'virulence_typing': "毒力分型",
+            'virulence_type': "vacA s1/m1, cagA陽性, babA2",
+            'drug_resistance_prediction': "耐藥性預測",
+            'resistance_clarithromycin': "克拉霉素",
+            'resistance_amoxicillin': "阿莫西林",
+            'resistance_metronidazole': "甲硝唑",
+            'mutation_profile': "突變譜",
+            'mutation_23s': "23S rRNA",
+            'mutation_gyrA': "gyrA",
+            'mutation_pbp1': "pbp1",
+            'database_comparison': "數據庫比對結果",
+            'report_placeholder': "[詳細的比對報告將顯示在這裡]",
+            'download_report': "下載完整報告",
+            'map_placeholder': "[地圖將顯示在這裡]",
+            'access_ncbi': "訪問NCBI數據庫"
+        },
+        'en': {
+            'home': "Home",
+            'search': "Smart Search",
+            'analysis': "Custom Analysis",
+            'contact': "Contact Us",
+            'about_us': "About Us",
+            'contact_us': "Contact Us",
+            'email': "Email",
+            'address': "Address",
+            'links': "Links",
+            'welcome': "Welcome to HP Bacteria Database Platform",
+            'subtitle': "World-leading H. pylori research database and AI platform. Led by Nobel Laureate Prof. Barry Marshall (2005). Co-developed with support from Marshall Infectious Disease Research Center and PolyU Marshall Centre.",
+            'start_search': "Start Search",
+            'custom_analysis': "Custom Analysis",
+            'feature1_title': "Complex Condition Query",
+            'feature1_desc': "Geographic, disease, drug resistance and other multidimensional screening",
+            'feature2_title': "Gene-Protein-Structure Exploration",
+            'feature2_desc': "In-depth exploration of gene annotation, protein function and 3D structure",
+            'feature3_title': "Drug Resistance Trend Analysis",
+            'feature3_desc': "Visualization of drug resistance trends and geographical distribution",
+            'feature4_title': "NCBI Research Portal",
+            'feature4_desc': "Access the world's largest biomedical literature database",
+            'smart_search': "Smart Search",
+            'country': "Country",
+            'city': "City",
+            'disease': "Disease Type",
+            'drug_resistance': "Drug Resistance",
+            'virulence': "Virulence Factor",
+            'select_country': "Select Country",
+            'china': "China",
+            'usa': "USA",
+            'japan': "Japan",
+            'select_city': "Select City",
+            'select_disease': "Select Disease",
+            'gastric_cancer': "Gastric Cancer",
+            'ulcer': "Ulcer",
+            'gastritis': "Gastritis",
+            'select_resistance': "Select Resistance",
+            'clarithromycin': "Clarithromycin Resistance",
+            'metronidazole': "Metronidazole Resistance",
+            'amoxicillin': "Amoxicillin Resistance",
+            'select_virulence': "Select Virulence Factor",
+            'cagA': "cagA",
+            'vacA': "vacA",
+            'babA': "babA",
+            'search': "Search",
+            'search_results': "Search Results",
+            'results_count': "Found {count} matching strains",
+            'strain_id': "Strain ID",
+            'origin': "Origin",
+            'disease': "Disease",
+            'resistance': "Resistance",
+            'virulence_factors': "Virulence Factors",
+            'view_mutations': "View Mutations",
+            'view_structure': "View 3D Structure",
+            'download': "Download Sequence",
+            'virulence_distribution': "Virulence Factor Distribution",
+            'chart_placeholder': "[Virulence factor distribution chart will be displayed here]",
+            'related_literature': "Related Literature",
+            'pubmed_link': "PMID: {id} - {title}",
+            'custom_analysis': "Custom Analysis",
+            'upload_sequence': "Upload Sequence",
+            'choose_file': "Choose File",
+            'no_file': "No file chosen",
+            'analyze': "Analyze",
+            'analysis_results': "Analysis Results",
+            'virulence_typing': "Virulence Typing",
+            'virulence_type': "vacA s1/m1, cagA positive, babA2",
+            'drug_resistance_prediction': "Drug Resistance Prediction",
+            'resistance_clarithromycin': "Clarithromycin",
+            'resistance_amoxicillin': "Amoxicillin",
+            'resistance_metronidazole': "Metronidazole",
+            'mutation_profile': "Mutation Profile",
+            'mutation_23s': "23S rRNA",
+            'mutation_gyrA': "gyrA",
+            'mutation_pbp1': "pbp1",
+            'database_comparison': "Database Comparison Results",
+            'report_placeholder': "[Detailed comparison report will be displayed here]",
+            'download_report': "Download Full Report",
+            'map_placeholder': "[Map will be displayed here]",
+            'access_ncbi': "Access NCBI Database"
+        }
+    };
+
+    // 页面路由
+    const routes = {
+        '#home': homePage,
+        '#search': searchPage,
+        '#results': resultsPage,
+        '#analysis': analysisPage,
+        '#contact': contactPage
+    };
+
+    // 当前语言
+    let currentLang = 'zh-CN';
+
+    // 当前登录用户
+    let currentUser = null;
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化语言
+        const savedLang = localStorage.getItem('lang');
+        if (savedLang) {
+            currentLang = savedLang;
+        }
+        loadLanguage(currentLang);
+
+        // 检查登录状态
+        checkLoginStatus();
+
+        // 语言切换按钮事件
+        document.querySelectorAll('.lang-switcher button').forEach(button => {
+            button.addEventListener('click', function() {
+                const lang = this.getAttribute('data-lang');
+                localStorage.setItem('lang', lang);
+                currentLang = lang;
+                loadLanguage(lang);
+                renderPage(); // 重新渲染当前页面
+            });
+        });
+
+        // 导航链接事件
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = this.getAttribute('href');
+
+                // 检查登录状态（搜索和分析需要登录）
+                if ((target === '#search' || target === '#analysis') && !currentUser) {
+                    showLoginModal();
+                    return;
+                }
+
+                window.location.hash = target;
+                renderPage();
+            });
+        });
+
+        // 初始路由
+        if (!window.location.hash) {
+            window.location.hash = '#home';
+        }
+        renderPage();
+
+        // 搜索表单提交
+        const searchForm = document.getElementById('search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // 检查登录状态
+                if (!currentUser) {
+                    showLoginModal();
+                    return;
+                }
+
+                window.location.hash = '#results';
+                renderPage();
+            });
+        }
+
+        // 文件上传
+        const fileInput = document.getElementById('sequence-file');
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                const fileName = this.files[0] ? this.files[0].name : translate('no_file', currentLang);
+                document.getElementById('file-name').textContent = fileName;
+                document.getElementById('analyze-btn').disabled = !this.files[0];
+            });
+        }
+
+        // 分析按钮
+        const analyzeBtn = document.getElementById('analyze-btn');
+        if (analyzeBtn) {
+            analyzeBtn.addEventListener('click', function() {
+                // 检查登录状态
+                if (!currentUser) {
+                    showLoginModal();
+                    return;
+                }
+
+                // 模拟分析过程
+                const originalText = this.textContent;
+                this.textContent = translate('analyzing', currentLang) + '...';
+                this.disabled = true;
+
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.disabled = false;
+                    document.querySelector('.analysis-results').style.display = 'block';
+                }, 2000);
+            });
+        }
+
+        // 用户操作按钮
+        document.getElementById('login-btn').addEventListener('click', showLoginModal);
+        document.getElementById('register-btn').addEventListener('click', showRegisterModal);
+        document.getElementById('logout-btn').addEventListener('click', logout);
+
+        // 模态框切换
+        document.getElementById('show-register').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-modal').style.display = 'none';
+            showRegisterModal();
+        });
+
+        document.getElementById('show-login').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('register-modal').style.display = 'none';
+            showLoginModal();
+        });
+
+        // 关闭模态框
+        document.querySelectorAll('.close-modal').forEach(closeBtn => {
+            closeBtn.addEventListener('click', function() {
+                this.closest('.modal').style.display = 'none';
+            });
+        });
+
+        // 发送验证码
+        document.getElementById('send-code-btn').addEventListener('click', sendVerificationCode);
+
+        // 登录表单提交
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            // 模拟登录验证
+            loginUser(email, password);
+        });
+
+        // 注册表单提交
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const organization = document.getElementById('register-organization').value;
+            const research = document.getElementById('register-research').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const code = document.getElementById('verification-code').value;
+
+            // 模拟注册
+            registerUser(name, organization, research, email, password, code);
+        });
+
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+    });
+
+    // 页面路由变化
+    window.addEventListener('hashchange', renderPage);
+
+    // 渲染当前页面
+    function renderPage() {
+        const route = window.location.hash;
+        const contentDiv = document.getElementById('content');
+
+        if (routes[route]) {
+            contentDiv.innerHTML = routes[route]();
+        } else {
+            contentDiv.innerHTML = homePage();
+        }
+
+        // 重新绑定事件（因为页面内容已更新）
+        bindPageEvents();
+    }
+
+    // 绑定页面特定事件
+    function bindPageEvents() {
+        // 国家-城市映射
+        const countryCityMap = {
+            'china': ['北京', '上海', '广州', '深圳'],
+            'usa': ['纽约', '洛杉矶', '芝加哥', '休斯顿'],
+            'japan': ['东京', '大阪', '名古屋', '福冈']
+        };
+
+        // 国家选择变化
+        const countrySelect = document.getElementById('country');
+        if (countrySelect) {
+            countrySelect.addEventListener('change', function() {
+                const citySelect = document.getElementById('city');
+                citySelect.innerHTML = `<option value="">${translate('select_city', currentLang)}</option>`;
+
+                if (this.value && countryCityMap[this.value]) {
+                    countryCityMap[this.value].forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.toLowerCase().replace(' ', '_');
+                        option.textContent = city;
+                        citySelect.appendChild(option);
+                    });
+                }
+            });
+        }
+    }
+
+    // 加载语言
+    function loadLanguage(lang) {
+        document.querySelectorAll('[data-key]').forEach(element => {
+            const key = element.getAttribute('data-key');
+            if (translations[lang][key]) {
+                element.textContent = translations[lang][key];
+            }
+        });
+
+        // 更新页面语言属性
+        document.documentElement.lang = lang;
+    }
+
+    // 翻译函数
+    function translate(key, lang) {
+        return translations[lang]?.[key] || key;
+    }
+
+    // 检查登录状态
+    function checkLoginStatus() {
+        const userData = localStorage.getItem('hp_database_user');
+        if (userData) {
+            currentUser = JSON.parse(userData);
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('login-buttons').style.display = 'none';
+            document.getElementById('username-display').textContent = currentUser.name;
+            document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        } else {
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('login-buttons').style.display = 'flex';
+        }
+    }
+
+    // 显示登录模态框
+    function showLoginModal() {
+        document.getElementById('login-modal').style.display = 'flex';
+        document.getElementById('login-email').focus();
+    }
+
+    // 显示注册模态框
+    function showRegisterModal() {
+        document.getElementById('register-modal').style.display = 'flex';
+        document.getElementById('register-name').focus();
+    }
+
+    // 发送验证码
+    async function sendVerificationCode() {
+        const email = document.getElementById('register-email').value;
+        if (!email) {
+            alert('请输入邮箱地址');
+            return;
+        }
+
+        // 验证邮箱格式
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('请输入有效的邮箱地址');
+            return;
+        }
+
+        const sendBtn = document.getElementById('send-code-btn');
+        sendBtn.disabled = true;
+        sendBtn.textContent = '发送中...';
+
+        try {
+            const response = await fetch('/api/send-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(`验证码已发送至邮箱: ${email}\n请查收邮件并输入验证码`);
+                sendBtn.textContent = '已发送';
+
+                // 60秒后可重新发送
+                setTimeout(() => {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = '发送验证码';
+                }, 60000);
+            } else {
+                alert(data.error || '发送验证码失败，请重试');
+                sendBtn.disabled = false;
+                sendBtn.textContent = '发送验证码';
+            }
+        } catch (error) {
+            console.error('发送验证码错误:', error);
+            alert('网络错误，请检查连接后重试');
+            sendBtn.disabled = false;
+            sendBtn.textContent = '发送验证码';
+        }
+    }
+
+    // 登录用户
+    async function loginUser(email, password) {
+        const loginBtn = document.querySelector('#login-form button');
+        loginBtn.disabled = true;
+        loginBtn.textContent = '登录中...';
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                currentUser = data.user;
+                localStorage.setItem('hp_database_token', data.token);
+                localStorage.setItem('hp_database_user', JSON.stringify(data.user));
+
+                // 更新UI
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('login-buttons').style.display = 'none';
+                document.getElementById('username-display').textContent = data.user.name;
+                document.getElementById('user-avatar').textContent = data.user.name.charAt(0).toUpperCase();
+
+                // 关闭模态框
+                document.getElementById('login-modal').style.display = 'none';
+
+                // 提示登录成功
+                alert(`欢迎回来，${data.user.name}！`);
+
+                // 如果是从需要登录的页面跳转过来的，现在可以继续操作
+                if (window.location.hash === '#search' || window.location.hash === '#analysis') {
+                    renderPage();
+                }
+            } else {
+                alert(data.error || '登录失败，请重试');
+            }
+        } catch (error) {
+            console.error('登录错误:', error);
+            alert('网络错误，请检查连接后重试');
+        }
+
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录';
+    }
+
+    // 注册用户
+    async function registerUser(name, organization, research, email, password, code) {
+        // 验证输入
+        if (!name || !organization || !research || !email || !password || !code) {
+            alert('请填写所有必填字段');
+            return;
+        }
+
+        // 验证邮箱格式
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('请输入有效的邮箱地址');
+            return;
+        }
+
+        // 验证密码长度
+        if (password.length < 6) {
+            alert('密码长度至少为6位');
+            return;
+        }
+
+        const registerBtn = document.querySelector('#register-form button');
+        registerBtn.disabled = true;
+        registerBtn.textContent = '注册中...';
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password,
+                    organization,
+                    research,
+                    verificationCode: code
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                currentUser = data.user;
+                localStorage.setItem('hp_database_token', data.token);
+                localStorage.setItem('hp_database_user', JSON.stringify(data.user));
+
+                // 更新UI
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('login-buttons').style.display = 'none';
+                document.getElementById('username-display').textContent = data.user.name;
+                document.getElementById('user-avatar').textContent = data.user.name.charAt(0).toUpperCase();
+
+                // 关闭注册模态框
+                document.getElementById('register-modal').style.display = 'none';
+
+                // 提示注册成功
+                alert(`注册成功！欢迎 ${data.user.name} 加入 HP 菌数据库平台`);
+            } else {
+                alert(data.error || '注册失败，请重试');
+            }
+        } catch (error) {
+            console.error('注册错误:', error);
+            alert('网络错误，请检查连接后重试');
+        }
+
+        registerBtn.disabled = false;
+        registerBtn.textContent = '注册';
+    }
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('hp_database_user');
+        localStorage.removeItem('hp_database_token');
+        currentUser = null;
+
+        // 更新UI
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('login-buttons').style.display = 'flex';
+
+        // 如果当前在需要登录的页面，跳转到首页
+        if (window.location.hash === '#search' || window.location.hash === '#analysis') {
+            window.location.hash = '#home';
+            renderPage();
+        }
+
+        alert('您已成功退出登录');
+    }
+
+    // 页面模板函数
+    function homePage() {
+        return `
+                <section class="hero">
+                    <div class="hero-content">
+                        <h1 data-key="welcome">${translate('welcome', currentLang)}</h1>
+                        <p data-key="subtitle">${translate('subtitle', currentLang)}</p>
+                        <div class="cta-buttons">
+                            <a href="#search" class="btn" data-key="start_search">${translate('start_search', currentLang)}</a>
+                            <a href="#analysis" class="btn" data-key="custom_analysis">${translate('custom_analysis', currentLang)}</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="features">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-search-location"></i>
+                        </div>
+                        <h2 data-key="feature1_title">${translate('feature1_title', currentLang)}</h2>
+                        <p data-key="feature1_desc">${translate('feature1_desc', currentLang)}</p>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-dna"></i>
+                        </div>
+                        <h2 data-key="feature2_title">${translate('feature2_title', currentLang)}</h2>
+                        <p data-key="feature2_desc">${translate('feature2_desc', currentLang)}</p>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h2 data-key="feature3_title">${translate('feature3_title', currentLang)}</h2>
+                        <p data-key="feature3_desc">${translate('feature3_desc', currentLang)}</p>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-book-medical"></i>
+                        </div>
+                        <h2 data-key="feature4_title">${translate('feature4_title', currentLang)}</h2>
+                        <p data-key="feature4_desc">${translate('feature4_desc', currentLang)}</p>
+                        <a href="https://www.ncbi.nlm.nih.gov/" target="_blank" class="btn" data-key="access_ncbi">${translate('access_ncbi', currentLang)}</a>
+                    </div>
+                </section>
+            `;
+    }
+
+    function searchPage() {
+        return `
+                <section class="search-section">
+                    <h1 data-key="smart_search">${translate('smart_search', currentLang)}</h1>
+
+                    <form id="search-form">
+                        <div class="form-group">
+                            <label data-key="country">${translate('country', currentLang)}</label>
+                            <select id="country">
+                                <option value="" data-key="select_country">${translate('select_country', currentLang)}</option>
+                                <option value="china" data-key="china">${translate('china', currentLang)}</option>
+                                <option value="usa" data-key="usa">${translate('usa', currentLang)}</option>
+                                <option value="japan" data-key="japan">${translate('japan', currentLang)}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-key="city">${translate('city', currentLang)}</label>
+                            <select id="city">
+                                <option value="" data-key="select_city">${translate('select_city', currentLang)}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-key="disease">${translate('disease', currentLang)}</label>
+                            <select id="disease">
+                                <option value="" data-key="select_disease">${translate('select_disease', currentLang)}</option>
+                                <option value="gastric_cancer" data-key="gastric_cancer">${translate('gastric_cancer', currentLang)}</option>
+                                <option value="ulcer" data-key="ulcer">${translate('ulcer', currentLang)}</option>
+                                <option value="gastritis" data-key="gastritis">${translate('gastritis', currentLang)}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-key="drug_resistance">${translate('drug_resistance', currentLang)}</label>
+                            <select id="drug-resistance">
+                                <option value="" data-key="select_resistance">${translate('select_resistance', currentLang)}</option>
+                                <option value="clarithromycin" data-key="clarithromycin">${translate('clarithromycin', currentLang)}</option>
+                                <option value="metronidazole" data-key="metronidazole">${translate('metronidazole', currentLang)}</option>
+                                <option value="amoxicillin" data-key="amoxicillin">${translate('amoxicillin', currentLang)}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-key="virulence">${translate('virulence', currentLang)}</label>
+                            <select id="virulence">
+                                <option value="" data-key="select_virulence">${translate('select_virulence', currentLang)}</option>
+                                <option value="cagA" data-key="cagA">${translate('cagA', currentLang)}</option>
+                                <option value="vacA" data-key="vacA">${translate('vacA', currentLang)}</option>
+                                <option value="babA" data-key="babA">${translate('babA', currentLang)}</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn" data-key="search">${translate('search', currentLang)}</button>
+                    </form>
+                </section>
+            `;
+    }
+
+    function resultsPage() {
+        return `
+                <section class="results-section">
+                    <h1 data-key="search_results">${translate('search_results', currentLang)}</h1>
+
+                    <div class="results-summary">
+                        <p data-key="results_count">${translate('results_count', currentLang).replace('{count}', '42')}</p>
+                        <div class="filter-tags">
+                            <span class="tag">${translate('usa', currentLang)}</span>
+                            <span class="tag">${translate('los_angeles', currentLang) || '洛杉矶'}</span>
+                            <span class="tag">${translate('gastric_cancer', currentLang)}</span>
+                            <span class="tag">${translate('clarithromycin', currentLang)}</span>
+                            <span class="tag">vacA s1/m1</span>
+                        </div>
+                    </div>
+
+                    <div class="results-container">
+                        <div class="strain-card">
+                            <h3 data-key="strain_id">${translate('strain_id', currentLang)}: HP_2023_USA_CA_001</h3>
+                            <div class="strain-details">
+                                <p><strong data-key="origin">${translate('origin', currentLang)}:</strong> ${translate('usa', currentLang)}, ${translate('los_angeles', currentLang) || '洛杉矶'}</p>
+                                <p><strong data-key="disease">${translate('disease', currentLang)}:</strong> ${translate('gastric_cancer', currentLang)}</p>
+                                <p><strong data-key="resistance">${translate('resistance', currentLang)}:</strong> ${translate('clarithromycin', currentLang)}</p>
+                                <p><strong data-key="virulence_factors">${translate('virulence_factors', currentLang)}:</strong> vacA s1/m1, cagA阳性</p>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn-small" data-key="view_mutations">${translate('view_mutations', currentLang)}</button>
+                                <button class="btn-small" data-key="view_structure">${translate('view_structure', currentLang)}</button>
+                                <button class="btn-small" data-key="download">${translate('download', currentLang)}</button>
+                            </div>
+                        </div>
+
+                        <div class="strain-card">
+                            <h3 data-key="strain_id">${translate('strain_id', currentLang)}: HP_2023_JPN_TK_002</h3>
+                            <div class="strain-details">
+                                <p><strong data-key="origin">${translate('origin', currentLang)}:</strong> ${translate('japan', currentLang)}, ${translate('tokyo', currentLang) || '东京'}</p>
+                                <p><strong data-key="disease">${translate('disease', currentLang)}:</strong> ${translate('gastric_cancer', currentLang)}</p>
+                                <p><strong data-key="resistance">${translate('resistance', currentLang)}:</strong> ${translate('amoxicillin', currentLang)}</p>
+                                <p><strong data-key="virulence_factors">${translate('virulence_factors', currentLang)}:</strong> vacA s1/m2, cagA阴性</p>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn-small" data-key="view_mutations">${translate('view_mutations', currentLang)}</button>
+                                <button class="btn-small" data-key="view_structure">${translate('view_structure', currentLang)}</button>
+                                <button class="btn-small" data-key="download">${translate('download', currentLang)}</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visualization">
+                        <h2 data-key="virulence_distribution">${translate('virulence_distribution', currentLang)}</h2>
+                        <div class="chart-placeholder">
+                            <p data-key="chart_placeholder">${translate('chart_placeholder', currentLang)}</p>
+                        </div>
+
+                        <h2 data-key="related_literature">${translate('related_literature', currentLang)}</h2>
+                        <ul class="literature-list">
+                            <li>
+                                <a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" data-key="pubmed_link">PMID: 12345678 - vacA s1/m1 在胃癌中的表达特征</a>
+                            </li>
+                            <li>
+                                <a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" data-key="pubmed_link">PMID: 23456789 - 耐药性与毒力因子的相关性研究</a>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            `;
+    }
+
+    function analysisPage() {
+        return `
+                <section class="analysis-section">
+                    <h1 data-key="custom_analysis">${translate('custom_analysis', currentLang)}</h1>
+
+                    <div class="upload-area">
+                        <h2 data-key="upload_sequence">${translate('upload_sequence', currentLang)}</h2>
+                        <div class="upload-box">
+                            <input type="file" id="sequence-file" accept=".fasta,.fna,.faa">
+                            <label for="sequence-file" class="btn" data-key="choose_file">${translate('choose_file', currentLang)}</label>
+                            <span id="file-name" data-key="no_file">${translate('no_file', currentLang)}</span>
+                        </div>
+                        <button id="analyze-btn" class="btn" data-key="analyze" disabled>${translate('analyze', currentLang)}</button>
+                    </div>
+
+                    <div class="analysis-results" style="display: none;">
+                        <h2 data-key="analysis_results">${translate('analysis_results', currentLang)}</h2>
+                        <div class="result-cards">
+                            <div class="result-card">
+                                <h3 data-key="virulence_typing">${translate('virulence_typing', currentLang)}</h3>
+                                <p data-key="virulence_type">${translate('virulence_type', currentLang)}</p>
+                            </div>
+
+                            <div class="result-card">
+                                <h3 data-key="drug_resistance_prediction">${translate('drug_resistance_prediction', currentLang)}</h3>
+                                <ul>
+                                    <li data-key="resistance_clarithromycin">${translate('resistance_clarithromycin', currentLang)}: ${translate('resistant', currentLang) || '耐药'} (${translate('probability', currentLang) || '概率'}: 92%)</li>
+                                    <li data-key="resistance_amoxicillin">${translate('resistance_amoxicillin', currentLang)}: ${translate('sensitive', currentLang) || '敏感'}</li>
+                                    <li data-key="resistance_metronidazole">${translate('resistance_metronidazole', currentLang)}: ${translate('moderate_resistance', currentLang) || '中度耐药'}</li>
+                                </ul>
+                            </div>
+
+                            <div class="result-card">
+                                <h3 data-key="mutation_profile">${translate('mutation_profile', currentLang)}</h3>
+                                <ul>
+                                    <li data-key="mutation_23s">23S rRNA: A2143G</li>
+                                    <li data-key="mutation_gyrA">gyrA: N87K</li>
+                                    <li data-key="mutation_pbp1">pbp1: F366L</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="full-report">
+                            <h3 data-key="database_comparison">${translate('database_comparison', currentLang)}</h3>
+                            <div class="report-placeholder">
+                                <p data-key="report_placeholder">${translate('report_placeholder', currentLang)}</p>
+                            </div>
+                            <button class="btn" data-key="download_report">${translate('download_report', currentLang)}</button>
+                        </div>
+                    </div>
+                </section>
+            `;
+    }
+
+    function contactPage() {
+        return `
+                <section class="contact-section">
+                    <h1 data-key="contact_us">${translate('contact_us', currentLang)}</h1>
+
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i> genoimage@genoimage.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Rm. 27, Space 109B-113, ITC, 1/F, 5W, Science & Technlogy Ave., Shatin, N.T., HKSAR</p>
+                    </div>
+
+                    <div class="map-placeholder">
+                        <p data-key="map_placeholder">${translate('map_placeholder', currentLang)}</p>
+                    </div>
+                </section>
+            `;
+    }
+</script>
+</body>
+</html>

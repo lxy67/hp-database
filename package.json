@@ -1,0 +1,43 @@
+{
+  "name": "hp-database-search",
+  "version": "1.0.0",
+  "description": "HP Database Search System with user authentication",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup-db": "node -e \"require('dotenv').config(); const { exec } = require('child_process'); exec(`psql ${process.env.DATABASE_URL} -f database.sql`, (error, stdout, stderr) => { if (error) { console.error(' Error setting up database:', error.message); return; } console.log(' Database setup completed successfully'); })\"",
+    "generate-sql": "python import_data.py",
+    "import-data": "python import_data.py && npm run setup-db",
+    "deploy": "npm install && npm run generate-sql && npm run setup-db && npm start"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.1",
+    "nodemailer": "^6.9.4",
+    "pg": "^8.11.3",
+    "socket.io": "^4.7.2",
+    "sqlite3": "^5.1.6",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "type": "module",
+  "keywords": [
+    "authentication",
+    "hp-database",
+    "medical"
+  ],
+  "author": "HP Database Team",
+  "license": "MIT"
+}
