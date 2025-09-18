@@ -6,22 +6,26 @@ async function setupDatabase() {
     try {
         console.log('Connecting to database...');
 
-        // Use POSTGRES_URI if available, otherwise fall back to DATABASE_URL
-        const connectionString = process.env.POSTGRES_URI || process.env.DATABASE_URL;
-
-        if (!connectionString) {
-            throw new Error('No database connection string provided. Please set POSTGRES_URI or DATABASE_URL environment variable.');
-        }
-
-        console.log('Using connection string:', connectionString.replace(/:([^:]+)@/, ':***@')); // Hide password in logs
-
-        const pool = new Pool({
-            connectionString,
+        // Use individual environment variables for database connection
+        const dbConfig = {
+            user: process.env.POSTGRES_USERNAME || 'root',
+            host: process.env.POSTGRES_HOST || process.env.HP_DATABASE_HOST,
+            database: process.env.POSTGRES_DATABASE || 'zeabur',
+            password: process.env.POSTGRES_PASSWORD,
+            port: process.env.POSTGRES_PORT || 5432,
             ssl: {
                 rejectUnauthorized: false,
                 sslmode: 'require'
             }
+        };
+
+        console.log('Connecting to database with config:', {
+            ...dbConfig,
+            password: '***', // Hide password in logs
+            host: dbConfig.host // Log the host for debugging
         });
+
+        const pool = new Pool(dbConfig);
 
         // Test the connection
         await pool.query('SELECT NOW()');
