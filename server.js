@@ -1,19 +1,31 @@
-// Add these near the top with other requires
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 
-// Configure PostgreSQL connection
+// Initialize Express app
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Database configuration
 const pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || '127.0.0.1',
-    database: process.env.DB_NAME || 'hpdata',
-    password: process.env.DB_PASSWORD || '123456',
-    port: process.env.DB_PORT || 5432,
-    max: 20, // max number of clients in the pool
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Test the database connection
+// Test database connection
 pool.query('SELECT NOW()', (err) => {
     if (err) {
         console.error('Database connection error', err.stack);
@@ -22,183 +34,147 @@ pool.query('SELECT NOW()', (err) => {
     }
 });
 
-// Add these endpoints after your existing routes
-
-// Get filter options for dropdowns
+// Get filter options
 app.get('/api/filters', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM filter_values LIMIT 1');
-        if (result.rows.length > 0) {
-            res.json(result.rows[0]);
-        } else {
-            res.status(404).json({ error: 'No filter values found' });
-        }
+        res.json(result.rows[0] || {});
     } catch (err) {
         console.error('Error fetching filters:', err);
         res.status(500).json({ error: 'Failed to fetch filter values' });
     }
 });
 
-// Search strains with filters and pagination
+// Search endpoint with pagination and filters
 app.get('/api/strains/search', async (req, res) => {
-    const {
-        query = '',
-        country,
-        region,
-        disease,
-        drugResistance,
-        page = 1,
-        pageSize = 20
-    } = req.query;
-
     try {
-        // Build the WHERE clause based on filters
-        const whereClauses = [];
-        const queryParams = [];
-        let paramIndex = 1;
+        const {
+            query = '',
+            country,
+            region,
+            disease,
+            drugResistance,
+            page = 1,
+            limit = 10
+        } = req.query;
 
-        // Add search query condition
+        const offset = (page - 1) * limit;
+        
+        let searchQuery = `
+            SELECT 
+                s.id, 
+                s.strain_id,
+                s.gene_seq,
+                c.name as country,
+                r.name as region,
+                d.name as disease,
+                dr.name as drug_resistance
+            FROM strains s
+            LEFT JOIN countries c ON s.country_id = c.id
+            LEFT JOIN regions r ON s.region_id = r.id
+            LEFT JOIN diseases d ON s.disease_id = d.id
+            LEFT JOIN drug_resistances dr ON s.drug_resistance_id = dr.id
+            WHERE 1=1
+        `;
+
+        const queryParams = [];
+        let paramCount = 1;
+
         if (query) {
-            whereClauses.push(`(s.strain_id ILIKE $${paramIndex} OR s.gene_seq ILIKE $${paramIndex})`);
+            searchQuery += ` AND (s.strain_id ILIKE $${paramCount} OR s.gene_seq ILIKE $${paramCount})`;
             queryParams.push(`%${query}%`);
-            paramIndex++;
+            paramCount++;
         }
 
-        // Add filter conditions
         if (country) {
-            whereClauses.push(`c.name = $${paramIndex}`);
+            searchQuery += ` AND c.name = $${paramCount}`;
             queryParams.push(country);
-            paramIndex++;
+            paramCount++;
         }
 
         if (region) {
-            whereClauses.push(`r.name = $${paramIndex}`);
+            searchQuery += ` AND r.name = $${paramCount}`;
             queryParams.push(region);
-            paramIndex++;
+            paramCount++;
         }
 
         if (disease) {
-            whereClauses.push(`d.name = $${paramIndex}`);
+            searchQuery += ` AND d.name = $${paramCount}`;
             queryParams.push(disease);
-            paramIndex++;
+            paramCount++;
         }
 
         if (drugResistance) {
-            whereClauses.push(`dr.name = $${paramIndex}`);
+            searchQuery += ` AND dr.name = $${paramCount}`;
             queryParams.push(drugResistance);
-            paramIndex++;
         }
 
-        // Build the base query
-        let baseQuery = `
-      SELECT 
-        s.strain_id as "strainId",
-        s.gene_seq as "geneSeq",
-        c.name as country,
-        r.name as region,
-        d.name as disease,
-        dr.name as "drugResistance"
-      FROM strains s
-      LEFT JOIN countries c ON s.country_id = c.id
-      LEFT JOIN regions r ON s.region_id = r.id
-      LEFT JOIN diseases d ON s.disease_id = d.id
-      LEFT JOIN drug_resistances dr ON s.drug_resistance_id = dr.id
-    `;
+        // Add pagination
+        searchQuery += ` ORDER BY s.id LIMIT $${paramCount + 1} OFFSET $${paramCount}`;
+        queryParams.push(parseInt(limit), offset);
 
-        // Add WHERE clause if there are any conditions
-        if (whereClauses.length > 0) {
-            baseQuery += ` WHERE ${whereClauses.join(' AND ')}`;
-        }
-
-        // Get total count for pagination
-        const countQuery = `SELECT COUNT(*) FROM (${baseQuery}) as total`;
-        const countResult = await pool.query(countQuery, queryParams);
-        const totalCount = parseInt(countResult.rows[0].count, 10);
-        const totalPages = Math.ceil(totalCount / pageSize);
-        const offset = (page - 1) * pageSize;
-
-        // Add pagination to the query
-        const paginatedQuery = `
-      ${baseQuery}
-      ORDER BY s.strain_id
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-
-        // Execute the paginated query
-        const { rows } = await pool.query(
-            paginatedQuery,
-            [...queryParams, pageSize, offset]
-        );
-
-        // Return the paginated results
-        res.json({
-            data: rows,
-            pagination: {
-                page: parseInt(page, 10),
-                pageSize: parseInt(pageSize, 10),
-                totalCount,
-                totalPages,
-            },
-        });
+        const result = await pool.query(searchQuery, queryParams);
+        res.json(result.rows);
     } catch (err) {
         console.error('Search error:', err);
-        res.status(500).json({ error: 'Failed to perform search' });
+        res.status(500).json({ error: 'Search failed' });
     }
 });
 
-// Export search results as CSV
+// Export data endpoint
 app.get('/api/strains/export', async (req, res) => {
     try {
-        // This is a simplified version - you might want to reuse the search query logic
         const query = `
-      SELECT 
-        s.strain_id as "strainId",
-        s.gene_seq as "geneSeq",
-        c.name as country,
-        r.name as region,
-        d.name as disease,
-        dr.name as "drugResistance"
-      FROM strains s
-      LEFT JOIN countries c ON s.country_id = c.id
-      LEFT JOIN regions r ON s.region_id = r.id
-      LEFT JOIN diseases d ON s.disease_id = d.id
-      LEFT JOIN drug_resistances dr ON s.drug_resistance_id = dr.id
-      ORDER BY s.strain_id
-    `;
-
-        const { rows } = await pool.query(query);
-
-        // Convert to CSV
-        const header = ['Strain ID', 'Gene Sequence', 'Country', 'Region', 'Disease', 'Drug Resistance'];
-        const csvRows = [header.join(',')];
-
-        for (const row of rows) {
-            const values = [
-                `"${row.strainId}"`,
-                `"${row.geneSeq}"`,
-                `"${row.country || ''}"`,
-                `"${row.region || ''}"`,
-                `"${row.disease || ''}"`,
-                `"${row.drugResistance || ''}"`
-            ];
-            csvRows.push(values.join(','));
-        }
-
-        const csvContent = csvRows.join('\n');
-
+            SELECT 
+                s.strain_id,
+                s.gene_seq,
+                c.name as country,
+                r.name as region,
+                d.name as disease,
+                dr.name as drug_resistance
+            FROM strains s
+            LEFT JOIN countries c ON s.country_id = c.id
+            LEFT JOIN regions r ON s.region_id = r.id
+            LEFT JOIN diseases d ON s.disease_id = d.id
+            LEFT JOIN drug_resistances dr ON s.drug_resistance_id = dr.id
+        `;
+        
+        const result = await pool.query(query);
+        
         // Set headers for file download
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=strains_export.csv');
-        res.send(csvContent);
-
+        
+        // Convert to CSV
+        const header = Object.keys(result.rows[0] || {}).join(',') + '\n';
+        const csv = result.rows.map(row => 
+            Object.values(row).map(field => 
+                `"${String(field || '').replace(/"/g, '""')}"`
+            ).join(',')
+        ).join('\n');
+        
+        res.send(header + csv);
     } catch (err) {
         console.error('Export error:', err);
-        res.status(500).json({ error: 'Failed to export data' });
+        res.status(500).json({ error: 'Export failed' });
     }
 });
 
-// Add this to your existing error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
 });
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+module.exports = app; // For testing
