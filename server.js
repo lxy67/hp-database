@@ -35,6 +35,28 @@ const pool = new Pool({
     }
 });
 
+let retryCount = 0;
+const maxRetries = 3;
+
+async function initializeDatabase() {
+    try {
+        await pool.query('SELECT NOW()');
+        console.log('✅ 数据库连接成功');
+    } catch (err) {
+        retryCount++;
+        if (retryCount < maxRetries) {
+            console.log(`正在重试数据库连接 (${retryCount}/${maxRetries})...`);
+            setTimeout(initializeDatabase, 2000 * retryCount);
+        } else {
+            console.error('❌ 数据库连接失败，已达到最大重试次数:', err);
+            process.exit(1);
+        }
+    }
+}
+
+
+initializeDatabase();
+
 // Test database connection
 pool.query('SELECT NOW()', (err) => {
     if (err) {
