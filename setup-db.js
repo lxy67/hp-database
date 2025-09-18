@@ -1,72 +1,47 @@
-const { Pool } = require('pg');
-const fs = require('fs').promises;
-const path = require('path');
+const { Client } = require('pg');
+const fs = require('fs');
 
 async function setupDatabase() {
-    console.log('Connecting to database...');
-    const pool = new Pool({
+    console.log('DATABASE_URL:', process.env.DATABASE_URL); // 添加这行来调试
+    
+    // 确保数据库连接字符串存在
+    if (!process.env.DATABASE_URL) {
+        console.error('❌ 错误：未设置 DATABASE_URL 环境变量');
+        process.exit(1);
+    }
+
+    const client = new Client({
         connectionString: process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production' ? { 
             rejectUnauthorized: false 
         } : false
     });
 
-    const client = await pool.connect();
-    
     try {
-        console.log('Starting database setup...');
+        console.log('正在连接到数据库...');
+        await client.connect();
+        console.log('✅ 成功连接到数据库');
+
+        console.log('正在读取 SQL 文件...');
+        const sql = fs.readFileSync('database.sql', 'utf8');
         
-        // Begin a transaction
-        await client.query('BEGIN');
+        console.log('正在执行 SQL 脚本...');
+        await client.query(sql);
         
-        // Read the SQL file
-        const sqlFilePath = path.join(__dirname, 'database.sql');
-        console.log(`Reading SQL file from: ${sqlFilePath}`);
-        
-        const sql = await fs.readFile(sqlFilePath, 'utf8');
-        
-        // Split the SQL file into individual commands
-        const commands = sql.split(';').filter(cmd => cmd.trim() !== '');
-        
-        // Execute each command
-        console.log(`Found ${commands.length} SQL commands to execute...`);
-        for (const [index, command] of commands.entries()) {
-            try {
-                if (command.trim() === '') continue;
-                console.log(`Executing command ${index + 1}/${commands.length}...`);
-                await client.query(command);
-            } catch (error) {
-                console.error(`Error executing command ${index + 1}:`, error.message);
-                throw error;
-            }
-        }
-        
-        // Commit the transaction
-        await client.query('COMMIT');
-        console.log('✅ Database setup completed successfully!');
-        
-    } catch (error) {
-        // Rollback the transaction in case of error
-        await client.query('ROLLBACK');
-        console.error('❌ Error setting up database:', error.message);
-        if (error.position) {
-            const position = parseInt(error.position);
-            const start = Math.max(0, position - 50);
-            const end = Math.min(position + 50, error.query.length);
-            console.error('Error context:', error.query.substring(start, end));
-            console.error(' '.repeat(Math.min(50, position - start)) + '^');
+        console.log('✅ 数据库设置完成');
+    } catch (err) {
+        console.error('❌ 数据库设置失败:', err.message);
+        if (err.code === 'ECONNREFUSED') {
+            console.error('无法连接到数据库。请检查：');
+            console.error('1. 数据库服务是否正在运行');
+            console.error('2. DATABASE_URL 是否正确');
+            console.error('3. 数据库是否允许从当前IP连接');
         }
         process.exit(1);
     } finally {
-        // Release the client back to the pool
-        client.release();
-        await pool.end();
-        process.exit(0);
+        await client.end();
     }
 }
 
-// Run the setup
-setupDatabase().catch(error => {
-    console.error('Unhandled error during database setup:', error);
-    process.exit(1);
-});
+// 执行设置
+setupDatabase();
