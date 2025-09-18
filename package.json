@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon server.js",
-        "setup-db": "psql $DATABASE_URL -f database.sql",
+        "setup-db": "node setup-db.js",
         "generate-sql": "python import_data.py"
     },
     "dependencies": {
