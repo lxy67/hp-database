@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!-- Previous head content remains the same until the scripts -->
+<script>
+    // Update all API endpoints to use relative paths
+    const API_BASE_URL = ''; // Empty for relative paths
+    
+    // Update your API calls like this:
+    async function searchStrains(filters) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/strains/search?${new URLSearchParams(filters)}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Search error:', error);
+            throw error;
+        }
+    }
+
+    // Update your login function
+    async function loginUser(email, password) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
+        }
+    }
+
+    // Update your registration function
+    async function registerUser(userData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Registration error:', error);
+            throw error;
+        }
+    }
+
+    // Update your export function
+    async function exportResults(filters) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/strains/export?${new URLSearchParams(filters)}`);
+            return await response.blob();
+        } catch (error) {
+            console.error('Export error:', error);
+            throw error;
+        }
+    }
+
+    // Rest of your existing JavaScript code...
+    document.addEventListener('DOMContentLoaded', function() {
+        // Your existing initialization code
+    });
+</script>
+</body>
+</html>
