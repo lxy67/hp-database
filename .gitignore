@@ -2,8 +2,11 @@
 *.csv
 !database.sql  # Include the generated SQL file
 
-# Remove Untitled-1.html
+# Remove unnecessary files
 Untitled-1.html
+init_db.sql
+setup.bat
+zeabur.json
 
 # Dependencies
 node_modules/
