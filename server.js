@@ -28,13 +28,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Database configuration
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URI,
-    ssl: process.env.NODE_ENV === 'production' 
-        ? { 
-            rejectUnauthorized: false,
-            sslmode: 'require'
-        } 
-        : false
+    user: process.env.POSTGRES_USERNAME || 'root',
+    host: process.env.POSTGRES_HOST || process.env.HP_DATABASE_HOST,
+    database: process.env.POSTGRES_DATABASE || 'zeabur',
+    password: process.env.POSTGRES_PASSWORD,
+    port: process.env.POSTGRES_PORT || 5432,
+    ssl: {
+        rejectUnauthorized: false,
+        sslmode: 'require'
+    }
 });
 
 // Test database connection
