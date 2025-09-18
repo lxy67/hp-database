@@ -1,70 +1,235 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<!-- Previous head content remains the same until the scripts -->
-<script>
-    // Update all API endpoints to use relative paths
-    const API_BASE_URL = ''; // Empty for relative paths
-    
-    // Update your API calls like this:
-    async function searchStrains(filters) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/strains/search?${new URLSearchParams(filters)}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Search error:', error);
-            throw error;
-        }
-    }
 
-    // Update your login function
-    async function loginUser(email, password) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password })
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HP菌数据库系统</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        input[type="text"],
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        .strain-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>HP菌数据库系统</h1>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="输入菌株ID或基因序列...">
+            <select id="countryFilter">
+                <option value="">选择国家</option>
+            </select>
+            <select id="diseaseFilter">
+                <option value="">选择疾病</option>
+            </select>
+            <button onclick="search()">搜索</button>
+            <button onclick="exportData()">导出数据</button>
+        </div>
+
+        <div id="loading" class="loading">加载中...</div>
+        <div id="error" class="error"></div>
+
+        <div id="results">
+            <!-- 搜索结果将在这里显示 -->
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let filters = {};
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', async function () {
+            // 加载筛选器选项
+            await loadFilters();
+            // 默认加载一些数据
+            await search();
+        });
+
+        // 加载筛选器选项
+        async function loadFilters() {
+            try {
+                const response = await fetch('/api/filters');
+                const data = await response.json();
+
+                // 填充国家下拉框
+                const countrySelect = document.getElementById('countryFilter');
+                data.countries?.forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.textContent = country;
+                    countrySelect.appendChild(option);
+                });
+
+                // 填充疾病下拉框
+                const diseaseSelect = document.getElementById('diseaseFilter');
+                data.diseases?.forEach(disease => {
+                    const option = document.createElement('option');
+                    option.value = disease;
+                    option.textContent = disease;
+                    diseaseSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载筛选器失败:', error);
+                showError('加载筛选器失败，请刷新页面重试');
+            }
+        }
+
+        // 搜索函数
+        async function search() {
+            const searchInput = document.getElementById('searchInput').value;
+            const country = document.getElementById('countryFilter').value;
+            const disease = document.getElementById('diseaseFilter').value;
+
+            // 构建查询参数
+            const params = new URLSearchParams();
+            if (searchInput) params.append('query', searchInput);
+            if (country) params.append('country', country);
+            if (disease) params.append('disease', disease);
+
+            try {
+                showLoading(true);
+                const response = await fetch(`/api/strains/search?${params.toString()}`);
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('搜索失败:', error);
+                showError('搜索失败，请稍后重试');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 显示搜索结果
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            if (!results || results.length === 0) {
+                resultsDiv.innerHTML = '<p>没有找到匹配的结果</p>';
+                return;
+            }
+
+            results.forEach(strain => {
+                const card = document.createElement('div');
+                card.className = 'strain-card';
+                card.innerHTML = `
+                    <h3>${strain.strain_id || '未知菌株'}</h3>
+                    <p><strong>国家:</strong> ${strain.country || '未知'}</p>
+                    <p><strong>地区:</strong> ${strain.region || '未知'}</p>
+                    <p><strong>疾病:</strong> ${strain.disease || '未知'}</p>
+                    <p><strong>耐药性:</strong> ${strain.drug_resistance || '未知'}</p>
+                    <p><strong>基因序列:</strong> ${strain.gene_seq ? strain.gene_seq.substring(0, 100) + '...' : '无'}</p>
+                `;
+                resultsDiv.appendChild(card);
             });
-            return await response.json();
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
         }
-    }
 
-    // Update your registration function
-    async function registerUser(userData) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Registration error:', error);
-            throw error;
+        // 导出数据
+        async function exportData() {
+            try {
+                window.location.href = '/api/strains/export';
+            } catch (error) {
+                console.error('导出失败:', error);
+                showError('导出数据失败，请稍后重试');
+            }
         }
-    }
 
-    // Update your export function
-    async function exportResults(filters) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/strains/export?${new URLSearchParams(filters)}`);
-            return await response.blob();
-        } catch (error) {
-            console.error('Export error:', error);
-            throw error;
+        // 显示加载中
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
-    }
 
-    // Rest of your existing JavaScript code...
-    document.addEventListener('DOMContentLoaded', function() {
-        // Your existing initialization code
-    });
-</script>
+        // 显示错误信息
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            setTimeout(() => {
+                errorDiv.textContent = '';
+            }, 5000);
+        }
+
+        // 为输入框添加回车键搜索
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+
+        // 当下拉框改变时自动搜索
+        document.getElementById('countryFilter').addEventListener('change', search);
+        document.getElementById('diseaseFilter').addEventListener('change', search);
+    </script>
 </body>
+
 </html>

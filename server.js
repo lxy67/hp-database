@@ -1,19 +1,38 @@
-// Add these near the top with other requires
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
+const path = require('path');
 
-// Configure PostgreSQL connection
+// Initialize Express app
+const app = express();
+
+// Trust first proxy (for rate limiting behind reverse proxy)
+app.set('trust proxy', 1);
+
+// Middleware
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Database configuration
 const pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || '127.0.0.1',
-    database: process.env.DB_NAME || 'hpdata',
-    password: process.env.DB_PASSWORD || '123456',
-    port: process.env.DB_PORT || 5432,
-    max: 20, // max number of clients in the pool
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Test the database connection
+// Test database connection
 pool.query('SELECT NOW()', (err) => {
     if (err) {
         console.error('Database connection error', err.stack);
@@ -21,8 +40,6 @@ pool.query('SELECT NOW()', (err) => {
         console.log('Successfully connected to PostgreSQL database');
     }
 });
-
-// Add these endpoints after your existing routes
 
 // Get filter options for dropdowns
 app.get('/api/filters', async (req, res) => {
@@ -197,8 +214,21 @@ app.get('/api/strains/export', async (req, res) => {
     }
 });
 
-// Add this to your existing error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+// Serve index.html for all other routes (SPA support)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+module.exports = app;
