@@ -28,45 +28,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Database configuration
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false,
-        sslmode: 'require'
-    }
+    connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URI,
+    ssl: process.env.NODE_ENV === 'production' 
+        ? { 
+            rejectUnauthorized: false,
+            sslmode: 'require'
+        } 
+        : false
 });
-
-let retryCount = 0;
-const maxRetries = 3;
-
-async function initializeDatabase() {
-    try {
-        await pool.query('SELECT NOW()');
-        console.log('✅ 数据库连接成功');
-    } catch (err) {
-        retryCount++;
-        if (retryCount < maxRetries) {
-            console.log(`正在重试数据库连接 (${retryCount}/${maxRetries})...`);
-            setTimeout(initializeDatabase, 2000 * retryCount);
-        } else {
-            console.error('❌ 数据库连接失败，已达到最大重试次数:', err);
-            process.exit(1);
-        }
-    }
-}
-
-
-initializeDatabase();
 
 // Test database connection
-pool.query('SELECT NOW()', (err) => {
-    if (err) {
-        console.error('Database connection error', err.stack);
-    } else {
-        console.log('Successfully connected to PostgreSQL database');
-    }
-});
+pool.query('SELECT NOW()')
+    .then(() => console.log('Successfully connected to PostgreSQL database'))
+    .catch(err => console.error('Database connection error', err.stack));
 
-// Get filter options for dropdowns
+// Rest of your routes and server setup...
+// [Keep all your existing routes and app.listen code below this line]
 app.get('/api/filters', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM filter_values LIMIT 1');
